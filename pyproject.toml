@@ -5,6 +5,7 @@ description = ""
 authors = ["David2261 <bulatnasirov2003@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -13,6 +14,8 @@ djangorestframework = "^3.16"
 django-environ = "^0.12"
 psycopg2-binary = "^2.9.10"
 django-filter = "^25.1"
+pillow = "^13.0.0"
+mysqlclient = "^2.3.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3"
