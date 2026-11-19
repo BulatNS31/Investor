@@ -71,7 +71,7 @@
      from .views import ClientMetricsView
 
      urlpatterns = [
-         path('api/v1/launch-control/', ClientMetricsView.as_view(), name='client-metrics'),
+         path("api/v1/launch-control/", ClientMetricsView.as_view(), name="client-metrics"),
      ]
      ```
 
@@ -232,6 +232,7 @@
    На сервере декодируйте:
    ```python
    import base64
+
    deviceInfo = json.loads(base64.b64decode(request.COOKIES.get("deviceInfo")).decode())
    ```
 4. **Маскировка**:
