@@ -1,95 +1,122 @@
-import { Suspense, lazy } from 'react';
-import { Route, Routes } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
-// Widgets
-import Preloader from '@/widgets/preloader.tsx';
-// Entities
-import PrivateRoute from "./entities/routers/PrivateRoute.tsx";
-import LayoutRoute from './entities/routers/LayoutRoute.tsx';
-import AdminLayoutRoute from './entities/routers/AdminLayoutRoute.tsx';
-// Pages (ленивая загрузка)
-const Home = lazy(() => import('./pages/Home.tsx'));
-const ArticleNews = lazy(() => import('./pages/posts/ArticleNews.tsx'));
-// Static pages
-const About = lazy(() => import('./pages/static/About.tsx'));
-const Contact = lazy(() => import('./pages/static/Contact.tsx'));
-const Responsibility = lazy(() => import('./pages/static/Responsibility.tsx'));
-const Payanddelivery = lazy(() => import('./pages/static/Payanddelivery.tsx'));
-const Confidentiality = lazy(() => import('./pages/static/Confidentiality.tsx'));
-const Agreement = lazy(() => import('./pages/static/Agreement.tsx'));
-const CyberSecurity = lazy(() => import('./pages/static/CyberSecurity.tsx'));
-const Emailagreement = lazy(() => import('./pages/static/Emailagreement.tsx'));
-const TermsOfUse = lazy(() => import('./pages/static/TermsOfUse.tsx'));
-const SiteMap = lazy(() => import('./pages/static/SiteMap.tsx'));
-const ConfidentialityCookies = lazy(() => import('./pages/static/ConfidentialityCookies.tsx'));
-const NotFound = lazy(() => import('./pages/static/NotFound.tsx'));
-// Components
-const ResetPassword = lazy(() => import('./components/ModalForms/ResetPassword.tsx'));
-// Posts
-const News = lazy(() => import('./pages/posts/News.tsx'));
-const Bonds = lazy(() => import('./pages/posts/Bond.tsx'));
-// Admin
-// const AdminLogin = lazy(() => import('./pages/admin/AdminLogin.tsx'));
-const AdminMain = lazy(() => import('./pages/admin/AdminMain.tsx'));
-const AdminApps = lazy(() => import('./pages/admin/AdminApps.tsx'));
-const AdminUpload = lazy(() => import('./pages/admin/AdminUpload.tsx'));
-const AdminCreate = lazy(() => import('./pages/admin/AdminCreate.tsx'));
-const AdminEdit = lazy(() => import('./pages/admin/AdminEdit.tsx'));
-
-// Personal
-const Portfolio = lazy(() => import('./pages/personal/Portfolio.tsx'));
+import { useState } from 'react'
+import heroImg from './assets/hero.png'
+import reactLogo from './assets/react.svg'
+import viteLogo from './assets/vite.svg'
+import './App.css'
 
 function App() {
+  const [count, setCount] = useState(0)
+
   return (
-    <div className="w-full h-full relative no-scroll-y">
-      <Helmet
-        defaultTitle="Investor Home"
-        titleTemplate="Investor Home | %s"
-      />
-      <Suspense fallback={<Preloader />}>
-        <Routes>
-          <Route path="/" element={<LayoutRoute />}>
-            <Route index element={<Home />} />
-            {/* Static pages */}
-            <Route path="about" element={<About />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="responsibility" element={<Responsibility />} />
-            <Route path="payanddelivery" element={<Payanddelivery />} />
-            <Route path="confidentiality" element={<Confidentiality />} />
-            <Route path="confidentialityandcookies" element={<ConfidentialityCookies />} />
-            <Route path="cybersecurity" element={<CyberSecurity />} />
-            <Route path="agreement" element={<Agreement />} />
-            <Route path="termsofuse" element={<TermsOfUse />} />
-            <Route path="sitemap" element={<SiteMap />} />
-            <Route path="emailagreement" element={<Emailagreement />} />
-            <Route path="resetpassword/:uidb64/:token" element={<ResetPassword />} />
+    <>
+      <section id="center">
+        <div className="hero">
+          <img src={heroImg} className="base" width="170" height="179" alt="" />
+          <img src={reactLogo} className="framework" alt="React logo" />
+          <img src={viteLogo} className="vite" alt="Vite logo" />
+        </div>
+        <div>
+          <h1>Get started</h1>
+          <p>
+            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+          </p>
+        </div>
+        <button
+          type="button"
+          className="counter"
+          onClick={() => setCount((count) => count + 1)}
+        >
+          Count is {count}
+        </button>
+      </section>
 
-            {/* Private pages */}
-            <Route element={<PrivateRoute />}>
-              <Route path="news" element={<News />} />
-              <Route path="bonds" element={<Bonds />} />
-              <Route path="portfolio" element={<Portfolio />} />
-              <Route path="news/:category/:slug" element={<ArticleNews />} />
-            </Route>
-          </Route>
+      <div className="ticks"></div>
 
-          {/* Admin pages */}
-          <Route path="/admin" element={<AdminLayoutRoute />}>
-            {/* <Route index path="login" element={<AdminLogin />} /> */}
-            <Route index path="main" element={<AdminMain />} />
-            <Route path="main/:apps" element={<AdminApps />} />
-            <Route path="main/:apps/upload" element={<AdminUpload />} />
-            <Route path="main/:apps/create" element={<AdminCreate />} />
-            <Route path="main/:apps/edit/:category/:slug" element={<AdminEdit />} />
-            <Route path="main/:apps/edit/:slug" element={<AdminEdit />} />
-          </Route>
+      <section id="next-steps">
+        <div id="docs">
+          <svg className="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#documentation-icon"></use>
+          </svg>
+          <h2>Documentation</h2>
+          <p>Your questions, answered</p>
+          <ul>
+            <li>
+              <a href="https://vite.dev/" target="_blank">
+                <img className="logo" src={viteLogo} alt="" />
+                Explore Vite
+              </a>
+            </li>
+            <li>
+              <a href="https://react.dev/" target="_blank">
+                <img className="button-icon" src={reactLogo} alt="" />
+                Learn more
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div id="social">
+          <svg className="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#social-icon"></use>
+          </svg>
+          <h2>Connect with us</h2>
+          <p>Join the Vite community</p>
+          <ul>
+            <li>
+              <a href="https://github.com/vitejs/vite" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#github-icon"></use>
+                </svg>
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a href="https://chat.vite.dev/" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#discord-icon"></use>
+                </svg>
+                Discord
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/vite_js" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#x-icon"></use>
+                </svg>
+                X.com
+              </a>
+            </li>
+            <li>
+              <a href="https://bsky.app/profile/vite.dev" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#bluesky-icon"></use>
+                </svg>
+                Bluesky
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
 
-          {/* 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </div>
-  );
+      <div className="ticks"></div>
+      <section id="spacer"></section>
+    </>
+  )
 }
 
-export default App;
+export default App

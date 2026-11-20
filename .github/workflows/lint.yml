@@ -9,6 +9,7 @@ on:
 
 jobs:
   lint:
+    name: Lint & Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -19,27 +20,32 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: "pip"
+          cache: poetry
+          cache-dependency-path: poetry.lock
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Configure Poetry
+        run: poetry config virtualenvs.in-project true
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+        run: poetry install --no-interaction --no-ansi
 
       - name: Ruff lint
-        run: ruff check .
+        run: poetry run ruff check .
 
       - name: Ruff format
-        run: ruff format --check .
+        run: poetry run ruff format --check .
 
       - name: Mypy
-        run: mypy .
+        run: poetry run mypy .
 
       - name: Bandit
-        run: bandit -r . -x ./tests,./migrations
+        run: poetry run bandit -r . -x ./tests,./migrations
 
       - name: Django checks
-        run: python manage.py check
+        run: poetry run python manage.py check
 
       - name: Tests
-        run: pytest
+        run: poetry run pytest
