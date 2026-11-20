@@ -71,7 +71,11 @@
      from .views import ClientMetricsView
 
      urlpatterns = [
-         path("api/v1/launch-control/", ClientMetricsView.as_view(), name="client-metrics"),
+     	path(
+     		"api/v1/launch-control/",
+     		ClientMetricsView.as_view(),
+     		name="client-metrics",
+     	),
      ]
      ```
 

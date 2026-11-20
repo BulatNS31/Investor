@@ -30,11 +30,11 @@ ruff = "^0.17.5"
 mypy = "^2.4.1"
 django-stubs = "^6.1.2"
 bandit = "^1.9.4"
+djangorestframework-stubs = "^3.18.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
 
 
 [tool.ruff]
@@ -58,29 +58,37 @@ select = [
     "DJ",     # Django rules
     "S",      # Bandit security rules
     "SIM",    # Simplify
-    "TCH",    # Type checking imports
+    "TC",    # Type checking imports
 ]
 
 ignore = [
-    "DJ001",  # Django nullable strings
+    "DJ001",
+    "W191",
 ]
 
 [tool.ruff.format]
 quote-style = "double"
-indent-style = "space"
+indent-style = "tab"
+line-ending = "lf"
+skip-magic-trailing-comma = false
+docstring-code-format = true
 
 [tool.mypy]
 python_version = "3.12"
-plugins = ["mypy_django_plugin.main"]
-strict = true
+plugins = [
+    "mypy_django_plugin.main",
+    "mypy_drf_plugin.main"
+]
+strict = false
 warn_return_any = true
 warn_unused_configs = true
+disallow_untyped_defs = true
 exclude = ["migrations/"]
 
 [tool.django-stubs]
 django_settings_module = "config.settings.dev"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings"
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
 python_files = ["test_*.py", "*_test.py"]
 

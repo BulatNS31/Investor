@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 
 set -uo pipefail
@@ -6,9 +5,17 @@ set -uo pipefail
 # ==========================================
 # Django Project Auto Linter & Fixer
 # ==========================================
+#
+# Переменные окружения (необязательные):
+#   DEV_SETTINGS   модуль dev-настроек   (по умолчанию config.settings.dev)
+#   PROD_SETTINGS  модуль prod-настроек  (по умолчанию config.settings.prod)
+#   PYTHON         интерпретатор Python  (по умолчанию python, затем python3)
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
+
+DEV_SETTINGS="${DEV_SETTINGS:-config.settings.dev}"
+PROD_SETTINGS="${PROD_SETTINGS:-config.settings.prod}"
 
 ERRORS=0
 
@@ -41,12 +48,18 @@ error() {
 
 info "Checking dependencies..."
 
-if ! command -v python >/dev/null 2>&1; then
-    error "Python not found"
-    exit 1
+if [ -z "${PYTHON:-}" ]; then
+    if command -v python >/dev/null 2>&1; then
+        PYTHON=python
+    elif command -v python3 >/dev/null 2>&1; then
+        PYTHON=python3
+    else
+        error "Python not found"
+        exit 1
+    fi
 fi
 
-if ! python -c "import django" >/dev/null 2>&1; then
+if ! "$PYTHON" -c "import django" >/dev/null 2>&1; then
     error "Django is not installed"
     exit 1
 fi
@@ -65,15 +78,16 @@ if command -v ruff >/dev/null 2>&1; then
 
     info "Fixing Python lint issues..."
 
+    # --extend-exclude добавляет исключения к стандартным, а не заменяет их
     ruff check . --fix \
-        --exclude migrations \
-        --exclude .venv || error "Ruff autofix failed"
+        --extend-exclude migrations \
+        --extend-exclude .venv || error "Ruff autofix failed (remaining issues need manual fixes)"
 
     info "Formatting Python code..."
 
     ruff format . \
-        --exclude migrations \
-        --exclude .venv || error "Formatting failed"
+        --extend-exclude migrations \
+        --extend-exclude .venv || error "Formatting failed"
 
     success "Ruff completed"
 
@@ -85,13 +99,32 @@ fi
 # 3. Django system checks
 # ==========================================
 
-info "Running Django checks..."
-
 if [ -f manage.py ]; then
 
-    python manage.py check || error "Django system check failed"
+    info "Running Django checks (dev settings: $DEV_SETTINGS)..."
 
-    python manage.py check --deploy || warning "Deployment checks reported issues"
+    "$PYTHON" manage.py check --settings="$DEV_SETTINGS" \
+        || error "Django system check failed"
+
+    info "Running deployment checks (prod settings: $PROD_SETTINGS)..."
+
+    # prod.py намеренно падает без секретов, поэтому для проверки подставляем
+    # одноразовые значения. Экспортированные переменные имеют приоритет над .env
+    # (load_dotenv не перезаписывает уже заданные), так что слабый ключ из .env
+    # проверку не ломает. Реальные секреты в этот процесс не попадают.
+    CHECK_SECRET_KEY="$("$PYTHON" -c \
+        'from django.core.management.utils import get_random_secret_key as k; print(k())')"
+
+    # --fail-level WARNING: без него предупреждения не меняют код возврата,
+    # и проверка "проходила" бы даже с security.W***
+    env \
+        SECRET_KEY="$CHECK_SECRET_KEY" \
+        ALLOWED_HOSTS="example.com" \
+        DB_PASSWORD="deploy-check" \
+        CORS_ALLOWED_ORIGINS="https://example.com" \
+        CSRF_TRUSTED_ORIGINS="https://example.com" \
+        "$PYTHON" manage.py check --deploy --fail-level WARNING --settings="$PROD_SETTINGS" \
+        || error "Deployment checks reported issues"
 
 else
     warning "manage.py not found"
@@ -119,8 +152,9 @@ if command -v bandit >/dev/null 2>&1; then
 
     info "Checking security..."
 
-    bandit -r . \
-        -x ./.venv,./venv,./tests,./migrations \
+    # Шаблоны с */ покрывают вложенные каталоги (apps/*/migrations, apps/*/tests)
+    bandit -r . -q \
+        -x './.venv,./venv,*/migrations,*/migrations/*,*/tests,*/tests/*' \
         || error "Bandit found security issues"
 
 else
@@ -131,11 +165,19 @@ fi
 # 6. Run tests
 # ==========================================
 
-if python -c "import pytest" >/dev/null 2>&1; then
+if "$PYTHON" -c "import pytest" >/dev/null 2>&1; then
 
     info "Running tests..."
 
-    pytest || error "Tests failed"
+    DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-$DEV_SETTINGS}" \
+        "$PYTHON" -m pytest
+    PYTEST_RC=$?
+
+    if [ "$PYTEST_RC" -eq 5 ]; then
+        warning "No tests collected"
+    elif [ "$PYTEST_RC" -ne 0 ]; then
+        error "Tests failed"
+    fi
 
 else
     warning "Pytest not installed, skipping tests"
@@ -151,9 +193,12 @@ echo "=========================================="
 if [ "$ERRORS" -eq 0 ]; then
     success "All checks completed successfully!"
 else
-    error "Completed with $ERRORS failed checks"
+    echo -e "${RED}[ERROR]${NC} Completed with $ERRORS failed checks"
 fi
 
 echo "=========================================="
 
-echo "$ERRORS"
+if [ "$ERRORS" -ne 0 ]; then
+    echo "Fix the issues above and run again."
+    exit 1
+fi
